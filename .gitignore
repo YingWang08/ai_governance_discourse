@@ -1,0 +1,41 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ── Virtual environments ────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── NLTK / model caches ─────────────────────────────────
+nltk_data/
+.cache/
+sentence_transformers/
+
+# ── Corpus & generated outputs ──────────────────────────
+# Raw source PDFs are downloaded manually per the corpus manifest and are
+# NOT redistributed here (copyright). Keep the repo to code + config only.
+data/raw/
+data/processed/
+output/
+
+# Keep the folder skeleton (uncomment the lines below and add empty
+# .gitkeep files if you want the empty dirs tracked):
+# !data/raw/.gitkeep
+# !data/processed/.gitkeep
+# !output/.gitkeep
+
+# ── OS / editor cruft ───────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,15 @@
+# Core analysis pipeline (CPU-only, no GPU required)
+pandas>=1.5
+numpy>=1.23
+scipy>=1.9
+scikit-learn>=1.1
+networkx>=2.8
+matplotlib>=3.6
+nltk>=3.8
+PyYAML>=6.0
+openpyxl>=3.1          # Excel read/write for 08_batch_coding.py (dropdown coding sheets)
+
+# Optional: only needed for `02_expand_lexicon.py --method sbert`
+# (data-driven lexicon expansion). The default `--method none` does NOT need it.
+# Uncomment to enable:
+# sentence-transformers>=2.2

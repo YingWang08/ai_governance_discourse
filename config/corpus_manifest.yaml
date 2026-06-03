@@ -1,0 +1,163 @@
+# =====================================================================
+# Corpus Manifest  (修复版)
+# ---------------------------------------------------------------------
+# 关键修复：
+#   #1  OECD 2019 和 2024 不再共用同一个URL（会被自动重定向到最新版）。
+#       2019版本指向 Wayback Machine 的早期存档。
+#   #2  每个文档增加 expected_min_kb 字段，下载后可自动验证大小合理。
+#   #3  增加 archived_at 字段，记录URL访问/存档的具体日期。
+#   #4  增加 source_type 字段（pdf/html），明确处理方式。
+#
+# 工作流：
+#   1. 手动下载每份文件到 data/raw/，文件名必须与 `file` 字段一致
+#   2. 运行 00_auto_cleaning.py，会自动计算 SHA-256 指纹
+#      并写入 output/tables/corpus_fingerprints.csv
+#   3. 指纹文件务必提交到代码仓库，作为版本证据
+# =====================================================================
+
+documents:
+  - id: oecd_2019
+    title: "OECD Recommendation of the Council on Artificial Intelligence (2019 original)"
+    body: OECD
+    year: 2019
+    file: oecd_2019.pdf
+    source_type: pdf
+    expected_min_kb: 100
+    # ⚠️ 关键：OECD 当前页面会自动重定向到 2024 修订版。
+    # 必须使用 Wayback Machine 早期快照，或在 OECD 历史档案中找到 2019 原始 PDF。
+    url: "https://web.archive.org/web/2020*/legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449"
+    fallback_urls:
+      - "https://web.archive.org/web/2020/https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449"
+      - "https://www.oecd.org/going-digital/ai/principles/"
+    notes: |
+      下载步骤:
+      1. 访问 https://web.archive.org
+      2. 输入 "legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449"
+      3. 在2019-05 到 2024-04 之间选择一个快照
+      4. 下载快照页面上的 PDF，重命名为 oecd_2019.pdf
+      下载后人工核查：文档内不应有 "2024" 修订标记。
+
+  - id: g20_2019
+    title: "G20 AI Principles (2019)"
+    body: G20
+    year: 2019
+    file: g20_2019.pdf
+    source_type: pdf
+    expected_min_kb: 100
+    url: "https://www.mofa.go.jp/files/000486596.pdf"
+    fallback_urls:
+      - "https://www.mofa.go.jp/policy/economy/g20_summit/osaka19/pdf/documents/en/annex_08.pdf"
+    notes: "日本外务省官方版本，~10页"
+
+  - id: unesco_2021
+    title: "UNESCO Recommendation on the Ethics of Artificial Intelligence (2021)"
+    body: UNESCO
+    year: 2021
+    file: unesco_2021.pdf
+    source_type: pdf
+    expected_min_kb: 1000
+    url: "https://unesdoc.unesco.org/ark:/48223/pf0000381137"
+    fallback_urls:
+      - "https://unesdoc.unesco.org/ark:/48223/pf0000381137.locale=en"
+    notes: "~40页，英文官方版"
+
+  - id: eu_aiact_proposal_2021
+    title: "EU AI Act - Commission Proposal (2021)"
+    body: European Commission
+    year: 2021
+    file: eu_aiact_proposal_2021.pdf
+    source_type: pdf
+    expected_min_kb: 2000
+    url: "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:52021PC0206"
+    fallback_urls:
+      - "https://eur-lex.europa.eu/resource.html?uri=cellar:e0649735-a372-11eb-9585-01aa75ed71a1.0001.02/DOC_1&format=PDF"
+    notes: "~120页，可能需要接受 EUR-Lex cookies"
+
+  - id: nist_rmf_2023
+    title: "NIST AI Risk Management Framework 1.0 (2023)"
+    body: NIST
+    year: 2023
+    file: nist_rmf_2023.pdf
+    source_type: pdf
+    expected_min_kb: 1500
+    url: "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf"
+    notes: "~42页"
+
+  - id: g7_hiroshima_2023
+    title: "G7 Hiroshima Process International Guiding Principles (2023)"
+    body: G7
+    year: 2023
+    file: g7_hiroshima_2023.txt   # ⚠️ 注意是 .txt 不是 .pdf
+    source_type: html
+    expected_min_kb: 20
+    url: "https://digital-strategy.ec.europa.eu/en/library/hiroshima-process-international-guiding-principles-advanced-ai-system"
+    fallback_urls:
+      - "https://www.whitehouse.gov/briefing-room/statements-releases/2023/10/30/g7-hiroshima-process-international-guiding-principles-for-advanced-ai-systems/"
+    notes: |
+      G7 Hiroshima 没有独立PDF，是HTML页面。
+      操作: 浏览器打开链接 → 全选正文 → 保存为 data/raw/g7_hiroshima_2023.txt
+      01_ingest 会自动识别 .txt 文件。
+
+  - id: us_eo_14110_2023
+    title: "US Executive Order 14110 on Safe, Secure, and Trustworthy AI (2023)"
+    body: White House
+    year: 2023
+    file: us_eo_14110_2023.pdf
+    source_type: pdf
+    expected_min_kb: 1500
+    url: "https://www.federalregister.gov/documents/full_text/pdf/2023-24283.pdf"
+    fallback_urls:
+      - "https://www.govinfo.gov/content/pkg/FR-2023-11-01/pdf/2023-24283.pdf"
+    notes: "联邦公报正式版"
+
+  - id: oecd_2024
+    title: "OECD AI Principles - Updated (2024 revision)"
+    body: OECD
+    year: 2024
+    file: oecd_2024.pdf
+    source_type: pdf
+    expected_min_kb: 200
+    # 修复后：2024 版本使用当前 URL（不会被自动改成2019）
+    url: "https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449"
+    fallback_urls:
+      - "https://oecd.ai/en/ai-principles"
+    notes: |
+      下载后人工核查：文档应包含 2024-05 的修订记录。
+      ⚠️ 与 oecd_2019 是同一份原始法律文件的两个版本，
+      必须确保两份文件内容不同，否则时间分析失效。
+
+  - id: eu_aiact_final_2024
+    title: "EU AI Act - Final Adopted Text, Regulation (EU) 2024/1689"
+    body: European Union
+    year: 2024
+    file: eu_aiact_final_2024.pdf
+    source_type: pdf
+    expected_min_kb: 10000
+    url: "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202401689"
+    notes: |
+      ⚠️ 最大文件（约458页，15MB+），下载需耐心。
+      这是 robustness 检验"去掉EU AI Act看结论"的关键文件，必须有。
+
+  - id: coe_convention_2024
+    title: "Council of Europe Framework Convention on AI (2024)"
+    body: Council of Europe
+    year: 2024
+    file: coe_convention_2024.pdf
+    source_type: pdf
+    expected_min_kb: 200
+    url: "https://rm.coe.int/1680afae3c"
+    fallback_urls:
+      - "https://www.coe.int/en/web/artificial-intelligence/the-framework-convention-on-artificial-intelligence"
+    notes: "~30页"
+
+  - id: eu_gpai_code_2025
+    title: "EU AI Act GPAI Code of Practice (2025)"
+    body: European Commission
+    year: 2025
+    file: eu_gpai_code_2025.pdf
+    source_type: pdf
+    expected_min_kb: 500
+    url: "https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai"
+    notes: |
+      2025 年文件，页面可能有多个版本，下载最新 Final 版。
+      若仅有 HTML，保存为 eu_gpai_code_2025.txt

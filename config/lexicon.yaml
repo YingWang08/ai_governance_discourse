@@ -1,0 +1,83 @@
+# =====================================================================
+# Frame Lexicon  —  config/lexicon.yaml
+# ---------------------------------------------------------------------
+# This file IS the methodological core of the study. It is deliberately
+# external and human-readable so that (a) reviewers can audit every seed
+# term, and (b) robustness checks can swap dictionaries without touching
+# code. Cite this file in the Methods section.
+#
+# Two frames, following Anders' capability / consequence distinction:
+#   capability  -> productive-power discourse ("what AI can do")
+#   consequence -> responsibility / harm discourse ("what it does to us")
+#
+# Each entry is a SEED. Section 3.2 (vector expansion) grows these into a
+# candidate list; human coders then validate a sample (report Cohen's k).
+# Keep seeds defensible: each should be unambiguously one frame to a naive
+# reader. Ambiguous boundary terms (e.g. "trustworthy") go in `boundary`
+# and are EXCLUDED from scoring, then discussed as the semantic overlap.
+# =====================================================================
+
+capability:
+  - innovation
+  - innovative
+  - competitiveness
+  - competitive
+  - deployment
+  - deploy
+  - productivity
+  - economic growth
+  - opportunity
+  - adoption
+  - uptake
+  - efficiency
+  - advancement
+  - development
+  - investment
+  - leadership
+  - capability
+  - performance
+  - scale
+  - scaling
+  - acceleration
+  - breakthrough
+  - potential
+  - benefit
+  - progress
+
+consequence:
+  - safety
+  - safe
+  - risk
+  - risks
+  - accountability
+  - accountable
+  - oversight
+  - human oversight
+  - harm
+  - harms
+  - fundamental rights
+  - human rights
+  - transparency
+  - responsibility
+  - responsible
+  - human control
+  - mitigation
+  - mitigate
+  - protection
+  - safeguard
+  - liability
+  - bias
+  - discrimination
+  - misuse
+  - precaution
+  - redress
+
+# Boundary terms: span both frames. Excluded from frame scoring on purpose,
+# reported separately as the contested overlap zone (Section 4.2).
+boundary:
+  - trustworthy
+  - trust
+  - ethical
+  - governance
+  - compliance
+  - standard

@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this software or its data, please cite both the software and the accompanying paper."
+title: "AI Governance Discourse: Capability vs Consequence (2019-2026)"
+abstract: >-
+  A reproducible, CPU-only computational text-analysis pipeline that codes
+  global AI-governance documents into a "capability" frame and a "consequence"
+  frame and tracks how their balance shifts over time, interpreted through
+  Guenther Anders' theory of the Promethean gap.
+type: software
+authors:
+  - given-names: "<FIRST NAME>"
+    family-names: "<LAST NAME>"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    affiliation: "<AFFILIATION>"
+  - given-names: "<FIRST NAME>"
+    family-names: "<LAST NAME>"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    affiliation: "<AFFILIATION>"
+license: MIT
+date-released: "2026-01-01"
+keywords:
+  - AI governance
+  - computational text analysis
+  - frame analysis
+  - Guenther Anders
+  - Promethean gap
+  - science and technology studies
+# Fill in once the paper is published, then uncomment:
+# preferred-citation:
+#   type: article
+#   title: "The Shifting Balance of Capability and Consequence in Global AI Governance Discourse, 2019-2026: A Computational Text Analysis through Guenther Anders' Lens"
+#   authors:
+#     - given-names: "<FIRST NAME>"
+#       family-names: "<LAST NAME>"
+#     - given-names: "<FIRST NAME>"
+#       family-names: "<LAST NAME>"
+#   journal: "Information"
+#   publisher:
+#     name: "MDPI"
+#   year: 2026
+#   doi: "10.3390/xxxxxxx"
