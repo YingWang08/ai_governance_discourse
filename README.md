@@ -1,19 +1,32 @@
-# AI Governance Discourse — Capability vs Consequence (2019–2026)
+# Sentence-Level Information Extraction from AI Governance Texts
 
-A reproducible, **CPU-only**, ethics-clearance-free pipeline for the paper:
+A reproducible, **CPU-only** pipeline for the paper:
 
-> *The Shifting Balance of Capability and Consequence in Global AI
-> Governance Discourse, 2019–2026: A Computational Text Analysis through
-> Günther Anders' Lens*
+> **Sentence-Level Information Extraction from AI Governance Texts: A Reproducible
+> Pipeline with Lexicon Validation, Benchmarking, and Semantic-Network Analysis**
 
-The pipeline codes governance-document sentences into a **capability** frame
-("what AI can do") and a **consequence** frame ("what it does to us"), then
-tracks how their balance shifts over time and aligns the lag with Anders'
-notion of the *Promethean gap*.
+The pipeline classifies every sentence of an AI governance document into one of four
+frames — **capability** ("what AI can do"), **consequence** ("what it does / what it
+obliges"), **both**, or **neither** — using a validated lexicon and codebook. It then
+(i) validates the extraction against a human gold standard, a supervised baseline, and
+two independent large-language-model annotators used as auxiliary triangulation;
+(ii) characterises the corpus through a term co-occurrence network; and (iii) tracks
+how the frame balance shifts across the 2019–2025 observation window.
 
-Every step runs on the **CPU** in minutes — no GPU, no paid API, no human
-subjects, and no personal data, so **no ethics approval is required**. All
-sources are official, public governance documents.
+Everything runs on an ordinary CPU. No GPU, no specialised hardware, no ethics-committee
+approval (the corpus is public official documents only; no human subjects, no personal data).
+
+---
+
+## Reproducibility & data
+
+- **All code, the lexicon and codebook, the derived sentence-level dataset, the
+  inter-coder reliability sample (both coders' labels + adjudication), and the full
+  LLM prompt and complete raw model outputs** are archived on Figshare:
+  **DOI [10.6084/m9.figshare.32568747](https://doi.org/10.6084/m9.figshare.32568747)**.
+- This repository holds the analysis code.
+- Random seeds are fixed (reliability sample `seed = 99`; supervised baseline `seed = 42`)
+  for full reproducibility.
 
 ---
 
@@ -21,14 +34,13 @@ sources are official, public governance documents.
 
 ```bash
 python -m venv .venv
-# Windows:        .venv\Scripts\activate
-# macOS / Linux:  source .venv/bin/activate
+# Windows:      .venv\Scripts\activate
+# macOS/Linux:  source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The first run that tokenizes text downloads NLTK's sentence tokenizer
-(~13 MB, one time). If the machine is offline at run time, fetch it once
-beforehand:
+The cleaning step uses NLTK's Punkt sentence tokenizer (~13 MB, downloaded once). If the
+run-time machine has no internet, fetch it beforehand:
 
 ```python
 import nltk; nltk.download('punkt'); nltk.download('punkt_tab')
@@ -36,142 +48,117 @@ import nltk; nltk.download('punkt'); nltk.download('punkt_tab')
 
 ---
 
-## 2. Get the data (manual, one time, ~30 min)
+## 2. Get the data (manual, one time)
 
-Open `config/corpus_manifest.yaml`. For each document, download the official
-PDF from its `url` into `data/raw/`, saving it under the exact `file` name
-listed (e.g. `oecd_2019.pdf`). Manual download keeps the corpus auditable and
-avoids fragile scrapers.
-
-- Can't get a clean PDF? Save the official text as `data/raw/<id>.txt` instead;
-  the pipeline auto-detects it.
-- Add or remove documents freely by editing the manifest — keep the `id`,
-  `year`, and `file` fields.
-- **Raw PDFs are not redistributed in this repo** (copyright). The manifest
-  tells anyone exactly which public documents to fetch.
+The eleven flagship governance documents are listed in Table 1 of the paper. Download the
+official PDF (or official HTML/text) of each from its source body into the raw-data folder,
+keeping a stable filename per document. Manual download keeps the corpus auditable and avoids
+fragile scrapers. All sources are official and public, so **no ethics approval is required**.
 
 ---
 
-## 3. The pipeline
+## 3. Pipeline — run order
 
-Scripts are numbered in run order. Place them under `src/` (or run from the
-repo root — each script resolves paths either way).
+The scripts are numbered in execution order. Steps 00–07 produce the corpus, the labels, and
+the three analytical results; steps 08–15 are the benchmarking and robustness layer that the
+paper's Section 3.5 and Sections 4.1–4.5 report.
 
-| Step | Script | What it does |
+| Script | Does | Paper element |
 |---|---|---|
-| 0 | `00_auto_cleaning.py` | Fully automatic, zero-touch sentence cleaning of dirty governance PDFs; logs every removed sentence for audit |
-| 2 | `02_expand_lexicon.py` | Normalises the seed lexicon (`--method none`, default) or optionally grows it from the corpus itself (`--method sbert`) |
-| 3 | `03_frame_coding.py` | Labels every sentence; outputs salience by year / body / document, plus an **independent rate** (not share-closed) for the lag analysis |
-| 4 | `04_cooccurrence_network.py` | Keyword co-occurrence network + centrality table; boundary terms (e.g. *trustworthy*) included as bridging nodes |
-| 5 | `05_temporal_analysis.py` | **Centerpiece**: temporal trajectory, cross-correlation lag, and a sentence-level early-vs-late χ² test |
-| 7 | `07_robustness.py` | Lexicon perturbation, leave-one-document-out, time-granularity, and polysemy checks |
+| `00_auto_cleaning.py` | Ingest PDF/HTML, strip boilerplate (page numbers, article markers, watermarks, tables-as-text), split into sentences, drop < 5-token segments, log every removed segment | §3.1 Corpus construction (Tables 1–2) |
+| `02_expand_lexicon.py` | Build / audit the capability & consequence lexicon (`--method none` for the audited list used in the paper; `--method sbert` optional, CPU-OK) | §3.2.1, Appendix A |
+| `03_frame_coding.py` | Label every sentence (cap / con / both / neither) from the lexicon; per-year / per-body / per-document salience | §3.2, §4.2 (Table 6) |
+| `04_cooccurrence_network.py` | Build the term co-occurrence network; compute betweenness centrality (bridging terms) | §4.3 (Figure 2, Table 7) |
+| `05_temporal_analysis.py` | Per-sentence frame **rates** by year; net-consequence index; descriptive lag cross-correlation | §4.4 (Figure 3, Table 8) |
+| `06_interactive_kappa.py` | Inter-coder reliability: draw the blind sample, score Cohen's κ / Krippendorff's α, per-category κ | §3.2.3 (κ = 0.91) |
+| `07_robustness.py` | Six robustness checks: lexical / polysemy perturbation, leave-one-document-out, coarse-period, document- vs. sentence-weighting, genre stratification | §3.4, §4.5 (Table 9, Appendix B) |
+| `08_batch_coding.py` | Apply the validated coding across the full corpus, writing `coded_sentences.csv` for the downstream benchmarking and inference scripts | feeds §4.1, §4.4, §4.5 |
+| `09_classification_metrics.py` | Lexicon vs. human gold standard: per-frame & per-class precision / recall / F1 + four-class confusion matrix (decomposes the single auto-vs-human κ into "high recall, lower precision") | §4.1 (Table 3) |
+| `10_supervised_baseline.py` | TF-IDF + logistic-regression baseline (balanced class weights, stratified 5-fold CV, `seed = 42`); lexicon scored on the identical folds | §4.1 (Table 4) |
+| `11_llm_annotation.py` | Generate the shared annotation prompt and score two LLMs (web-interface workflow) against the gold standard; per-frame F1, four-class κ, run-to-run κ | §4.1 (Table 5) |
+| `12_clustered_inference.py` | Clustering-aware inference: document-level Spearman / Kendall / Mann–Kendall (n = 11), GEE (exchangeable, clustered on document), cluster-robust logit, document cluster bootstrap, and a genre-adjusted model | §4.4 |
+| `13_procedural_filter.py` | Implement the codebook's "about-what" procedural-obligation exclusion in code; reclassify pure administrative `shall`/`must` sentences to *neither*; re-score precision/recall/F1 | §4.5 |
+| `14_llm_panel_api.py` | API-based alternative to `11`, for users who prefer scripted LLM annotation over the web interface | §4.1 (alternative path) |
+| `15_lexicon_validity.py` | Lexicon-composition bootstrap (drop a random 30 % of each frame's terms, B = 1000) + per-term influence audit | §4.5 |
+| `generate_pipeline_figure.py` | Render the end-to-end pipeline diagram | Figure 1 |
+| `make_genre_template.py` | Helper to build the hard-law / soft-law genre stratification table | §4.5 genre check |
 
-Inter-coder reliability and validation (run as needed):
-
-| Step | Script | What it does |
-|---|---|---|
-| 6 | `06_interactive_kappa.py` | Interactive per-sentence double-coding + Cohen's κ |
-| 8 | `08_batch_coding.py` | Faster alternative to 06: export an Excel sheet with dropdowns, two coders fill it, import back (same `coding_sample.csv`, same labels) |
-| 9 | `09_classification_metrics.py` | Lexicon vs human Precision / Recall / F1 (explains the κ as "high recall, low precision") |
-| 10 | `10_supervised_baseline.py` | TF-IDF + Logistic Regression baseline, stratified CV, fixed seed — apples-to-apples vs the lexicon |
-| 11 | `11_llm_annotation.py` | Uses **web-chat LLM outputs** (no paid API) as an independent third annotator; multi-model cross-validation |
-
-Coders read **`CODEBOOK_template.md`** before labelling — a κ is only
-credible with a written manual. The finalised codebook goes in the appendix.
-
-Typical minimal run after `data/raw/` is populated:
-
-```bash
-cd src
-python 00_auto_cleaning.py
-python 02_expand_lexicon.py --method none
-python 03_frame_coding.py
-python 04_cooccurrence_network.py
-python 05_temporal_analysis.py
-python 07_robustness.py
-```
+There is no `01_…`; ingestion is handled entirely by `00_auto_cleaning.py`.
 
 ---
 
-## 4. Files you must add before the repo runs
+## 4. Clean before you trust (the PDF pitfall)
 
-These are imported or read by the scripts but are **not** committed here (they
-are environment- or content-specific). Add them under the paths shown:
-
-- **`utils_audit.py`** — provides `AuditLog` and `fingerprint_corpus`,
-  imported by `00` and `06`. Required.
-- **`config/lexicon.yaml`** — the seed lexicon (capability / consequence /
-  boundary terms). This is the single most important knob; edit it, re-run,
-  and report any change — that *is* the robustness story.
-- **`config/corpus_manifest.yaml`** — `id`, `year`, `file`, `url` for every
-  source document.
-- **`config/lexicon_expanded.yaml`** — produced by `02`; you don't write it by
-  hand.
-
-(The pipeline also expects an ingest step that turns `data/raw/` PDFs/txt into
-`sentences.csv` before `00` cleans them. If you keep that as a separate
-`01_*` script, add it too.)
+Real governance PDFs are dirty (page numbers, `Article 5(1)(c)`, watermarks, tables-as-text).
+`00_auto_cleaning.py` strips the common cases automatically and logs **everything removed** to a
+dropped-sentences file, so cleaning stays auditable. Always skim the cleaning output on your own
+files before trusting downstream counts; add a rule, or hand-clean a document as a `.txt`, if
+anything is still broken. Re-run until clean.
 
 ---
 
-## 5. Outputs and where they appear in the paper
+## 5. Reliability + codebook (the kappa pitfall)
 
-| File | Paper element |
-|---|---|
-| `output/figures/temporal_salience.png` | **Centerpiece figure** (RQ2) |
-| `output/figures/net_consequence_trend.png` | Net balance over time |
-| `output/figures/cooccurrence_network.png` | Semantic structure (RQ1) |
-| `output/tables/salience_by_year.csv` | Temporal salience numbers |
-| `output/tables/salience_by_document.csv` / `_by_body.csv` | Distribution (RQ1) |
-| `output/tables/network_centrality.csv` | Bridging terms |
-| `output/tables/temporal_crosscorr.csv` | Descriptive lag (RQ2) |
-| `output/tables/reliability_report.txt` | Cohen's κ (Methods) |
-| `output/tables/metrics_lexicon_4class.csv` | P/R/F1 vs human (validation) |
-| `output/tables/robustness_*.csv` | Robustness checks |
+A kappa is only credible with a written manual. Two coders read the codebook (reproduced in
+Appendix A of the paper and included in the Figshare archive), then **independently** label the
+blind sample; `06_interactive_kappa.py` scores agreement. Report the human–human κ, the per-category
+κ, and the human-vs-automatic agreement (the latter decomposed into precision/recall by
+`09_classification_metrics.py`). The finalised codebook lives in the appendix and the archive.
 
 ---
 
-## 6. How the code answers the predictable reviewer objections
+## 6. The benchmarking layer (what reviewers asked for)
 
-- **"Corpus too small / document-level counting."** The unit of analysis is the
-  **sentence**; report sample size in sentences/tokens, not documents.
-- **"It's just word frequency."** The main result (`05`) is a **temporal
-  trajectory with a lag**, not a static count.
-- **"Researcher bias in the lexicon."** The lexicon is external
-  (`config/lexicon.yaml`), optionally data-expanded (`02`), and validated by
-  **two human coders with Cohen's κ** (`06`/`08`), a supervised baseline
-  (`10`), and an independent LLM annotator (`11`).
-- **"Driven by one long document (the EU AI Act)."** Leave-one-document-out is
-  built into `07`.
-- **"Reading the lag."** The lag *number* from `05` is meaningless until aligned
-  with the governance timeline (GPT-4 release, G7 Hiroshima Process, EU AI Act
-  trilogue) in the Discussion. Only then does Anders' Promethean gap attach.
-  This is the author's job, not the code's.
-- **"Anders is dubious / I don't know Anders."** The theory is **detachable** —
-  every figure and table stands on its own; Anders enters only in
-  interpretation.
+The paper's validity case rests on **four reference points**, all reproducible here:
+
+1. **Human gold standard** — blind two-coder reliability, κ = 0.91 (`06`).
+2. **Transparent rule-based classifier** — the lexicon itself, scored per-frame (`09`).
+3. **Supervised baseline** — TF-IDF + logistic regression, 5-fold CV (`10`).
+4. **Auxiliary LLM triangulation** — two models from different developers, codebook-only,
+   prompt and raw outputs released (`11` / `14`).
+
+The human-coded gold standard is the **sole reference** for all classification metrics; the LLM
+outputs are reported only as auxiliary external triangulation, never as ground truth.
+
+Two further scripts probe the construction of the measure directly: the procedural-obligation
+filter (`13`) bounds over-coding of administrative language, and the lexicon bootstrap +
+term-influence audit (`15`) shows the temporal direction is not carried by any single term.
 
 ---
 
-## 7. Reproducibility notes
+## 7. Reading the temporal result (the interpretation pitfall)
 
-- No network calls at analysis time except the one-time NLTK download and the
-  optional SBERT model fetch.
-- Random seeds are fixed (`42`).
-- Cleaning is auditable: every removed sentence is logged
-  (`output/tables/cleaning_decisions.csv`) so you can tell a reviewer exactly
-  what was excluded and why.
+The unit of temporal inference is **eleven documents, not 5,527 sentences**. `12` runs the
+clustering-aware models that keep the inference honest; the sentence-level chi-square is a
+**heuristic only**, because it treats clustered sentences as independent. Report the document-level
+trend as the primary result, treat the trend as **exploratory and modest in strength** at this
+sample size, and keep the cross-sectional network finding (`04`) as an independent result that does
+not depend on the trajectory. Any broader interpretive reading is the author's job in the
+Discussion, not the code's, and the empirical results stand on their own without it.
 
 ---
 
-## 8. Citation
+## 8. How the code answers the predictable reviewer objections
 
-If you use this code or data, please cite the software (see `CITATION.cff`) and
-the accompanying paper once published.
+- **"Corpus too small / document-level counting."** The unit of analysis is the **sentence**
+  (5,527 sentences, 207,777 tokens); `00` prints these. For *inference*, the unit is the document,
+  and `12` does document-level and clustering-aware estimation — no pseudoreplication.
+- **"It's just word frequency."** The headline is a **temporal trajectory** plus a **bridging-term
+  network structure**, not a static count (`04`, `05`).
+- **"The lexicon is arbitrary / researcher bias."** The lexicon is external and audited (`02`),
+  validated by two human coders with Cohen's κ (`06`), benchmarked against a supervised model (`10`)
+  and two independent LLMs (`11`/`14`), and shown robust to dropping 30 % of its terms (`15`).
+- **"Over-coding of `shall`/`must` procedural text."** Quantified and bounded by the explicit
+  procedural-obligation filter (`13`): reclassifies only ~0.8 % of sentences, consequence F1 unchanged.
+- **"Driven by one long document (the EU AI Act)."** Leave-one-document-out is in `07`.
+- **"Soft-to-hard-law confound."** Genre stratification (`07`) and a genre-adjusted model (`12`).
 
-## 9. License
+---
 
-Released under the [MIT License](LICENSE). The MIT license covers the **code**.
-If you also want to license the figures, codebook, or any released derived data,
-a content license such as CC-BY 4.0 is the conventional companion — add a note
-in this section if you adopt one.
+## 9. Notes
+
+- No `localStorage`, no network calls at analysis time (except the one-time NLTK download and the
+  optional SBERT model fetch).
+- The lexicon files are the single most important knob. Edit them, re-run, and report any change —
+  that *is* the robustness story (`15`).
+- Random seeds are fixed (`99` for the reliability sample, `42` for the supervised baseline).

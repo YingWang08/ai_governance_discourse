@@ -49,7 +49,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 5.5))
     _plot_pair(ax, by.year, by.capability_rate, by.consequence_rate, missing, all_years,
                "Capability vs consequence framing density in global AI governance\n"
-               "discourse, 2019-2026 (sentence-level rate; independent series)",
+               f"discourse, {int(y0)}-{int(y1)} (sentence-level rate; independent series)",
                "Share of all sentences containing the frame")
     note = ("Rate = sentences invoking the frame / all sentences (the two series are NOT "
             "constrained to sum to 1\nand may rise or fall independently). Grey bands = years "

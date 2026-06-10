@@ -1,0 +1,12 @@
+doc_id,genre,body,year
+oecd_2019,soft,OECD,2019
+g20_2019,soft,G20,2019
+unesco_2021,soft,UNESCO,2021
+eu_aiact_proposal_2021,hard,European Commission,2021
+nist_rmf_2023,soft,NIST,2023
+g7_hiroshima_2023,soft,G7,2023
+us_eo_14110_2023,hard,White House,2023
+oecd_2024,soft,OECD,2024
+eu_aiact_final_2024,hard,European Union,2024
+coe_convention_2024,hard,Council of Europe,2024
+eu_gpai_code_2025,soft,European Commission,2025

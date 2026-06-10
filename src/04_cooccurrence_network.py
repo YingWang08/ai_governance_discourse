@@ -87,8 +87,9 @@ def main(min_edge_weight=2, top_n_terms=45):
               Line2D([0],[0], marker="o", color="w", label="Consequence frame", markerfacecolor=CON_COLOR, markersize=11),
               Line2D([0],[0], marker="o", color="w", label="Boundary / bridging", markerfacecolor=BND_COLOR, markersize=11)]
     plt.legend(handles=legend, loc="upper right", frameon=False, fontsize=10)
+    _y0, _y1 = int(df.year.min()), int(df.year.max())
     plt.title("Co-occurrence network of capability, consequence and boundary terms\n"
-              "in global AI governance discourse (2019-2026)", fontsize=12)
+              f"in global AI governance discourse ({_y0}-{_y1})", fontsize=12)
     plt.axis("off"); plt.tight_layout()
     out = os.path.join(FIG, "cooccurrence_network.png")
     plt.savefig(out, dpi=300, bbox_inches="tight"); plt.close()
